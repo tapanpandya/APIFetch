@@ -1,48 +1,92 @@
-import React, {useEffect, useState} from 'react';
-import {ActivityIndicator, FlatList, Text, View} from 'react-native';
+import React, {Component} from 'react';
+import {Text, View, Button, StyleSheet, FlatList, Image} from 'react-native';
 import axios from 'axios';
 
-// axios
-//   .get('/user?ID=12345')
-//   .then(function (response) {
-//     console.log(response);
-//   })
-//   .catch(function (error) {
-//     console.log(error);
-//   });
+export default class AXIOSCall extends Component {
+  state = {
+    data: '',
+    page: 1,
+    showData: false,
+    API: 'https://reqres.in/api/users?page=',
+  };
 
-export default AxiosCall = () => {
-  const [isLoading, setLoading] = useState(true);
-  const [data, setData] = useState([]);
-  const [page, setPage] = useState(1);
-
-  useEffect(() => {
+  getData = () => {
+    let data = this.state.data;
+    let API = this.state.API;
+    let page = this.state.page;
     axios
-      .get('https://reqres.in/api/users?page=' + page)
+      .get(API + page)
       .then((response) => {
-        console.log(response.json());
-        response.json();
+        this.setState({data: response.data.data});
+        this.setState({showData: true});
       })
-      .then((json) => setData(json.movies))
-      .catch((error) => console.error(error))
-      .finally(() => setLoading(false));
-  }, []);
+      .catch(function (error) {
+        console.error(error);
+      })
+      .finally(function () {
+        let dat = this.state.data;
+        console.log('data = ' + dat);
+        console.log(showData);
+      });
+  };
 
-  return (
-    <View style={{flex: 1, padding: 24}}>
-      {isLoading ? (
-        <ActivityIndicator />
-      ) : (
-        <FlatList
-          data={data}
-          keyExtractor={({id}, index) => id}
-          renderItem={({item}) => (
-            <Text>
-              {item.title}, {item.releaseYear}
-            </Text>
-          )}
-        />
-      )}
+  renderItem = ({item}) => (
+    <View style={styles.list}>
+      <View>
+        <Image style={styles.image} source={{uri: item.avatar}} />
+      </View>
+      <View style={styles.sublist}>
+        <Text style={styles.title}>{item.first_name}</Text>
+        <Text style={styles.title}>{item.last_name}</Text>
+      </View>
+      <View style={styles.subheading}>
+        <Text style={styles.email}>{item.email}</Text>
+      </View>
     </View>
   );
-};
+
+  render() {
+    let showData = this.state.showData;
+    let data = this.state.data;
+
+    return (
+      <View style={styles.container}>
+        <Button title="Get Data" onPress={this.getData} />
+        {showData ? (
+          <FlatList
+            data={data}
+            renderItem={this.renderItem}
+            keyExtractor={(item) => item.id}
+          />
+        ) : (
+          <Text>Sorry! We are facing technical problem!!!</Text>
+        )}
+      </View>
+    );
+  }
+}
+
+const styles = StyleSheet.create({
+  list: {
+    flex: 1,
+    flexDirection: 'row',
+    padding: 5,
+    backgroundColor: 'grey',
+    margin: 5,
+    borderRadius: 3,
+  },
+  image: {
+    height: 70,
+    width: 70,
+    borderRadius: 35,
+  },
+  sublist: {
+    flex: 1,
+    flexDirection: 'column',
+    padding: 10,
+  },
+  title: {
+    fontSize: 15,
+  },
+  subheading: {},
+});
